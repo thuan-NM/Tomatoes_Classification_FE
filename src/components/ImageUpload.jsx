@@ -13,23 +13,24 @@ const ImageUpload = () => {
 
   const handleFileChange = ({ file }) => {
     const selectedFile = file.originFileObj || file;
-    setFile(selectedFile);
 
     if (selectedFile instanceof Blob) {
+      setFile(selectedFile);
       setImageUrl(URL.createObjectURL(selectedFile));
+      setError("");
     } else {
       setError("Invalid file format");
     }
 
+    // Reset prediction and confidence when a new file is selected
     setPrediction(null);
     setConfidence(null);
-    setError("");
   };
 
   const translatePrediction = (pred) => {
     switch (pred) {
       case "half_ripened":
-        return "Half ripene";
+        return "Half ripened";
       case "fully_ripened":
         return "Fully ripened";
       case "green":
@@ -50,15 +51,24 @@ const ImageUpload = () => {
     formData.append("file", file);
 
     try {
-      const response = await axios.post("http://127.0.0.1:5000/predict", formData, {
+      const response = await axios.post("https://tomatoes-classification-be.onrender.com/predict", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      console.log(response.data.prediction)
-      // Update with translated prediction
-      setPrediction(translatePrediction(response.data.prediction));
-      setConfidence(response.data.confidence);
+
+      if (response.data) {
+        // Update with translated prediction
+        setPrediction(translatePrediction(response.data.prediction));
+        setConfidence(response.data.confidence);
+      } else {
+        setError("No prediction received from server.");
+      }
     } catch (err) {
-      setError("Error occurred while uploading image.");
+      // Handle errors from the server
+      if (err.response) {
+        setError(`Error: ${err.response.data.error || "Unknown error occurred."}`);
+      } else {
+        setError("Error occurred while uploading image.");
+      }
     } finally {
       setLoading(false);
     }
@@ -70,7 +80,7 @@ const ImageUpload = () => {
         <h2 className="title">Upload an Image for Prediction</h2>
 
         <Upload
-          beforeUpload={() => false}
+          beforeUpload={() => false} // Prevent automatic upload
           onChange={handleFileChange}
           showUploadList={false}
         >
