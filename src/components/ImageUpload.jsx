@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Upload, Button, Spin } from "antd";
+import { Upload, Button, Spin, Radio } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import axios from "axios";
 
@@ -10,6 +10,7 @@ const ImageUpload = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [imageUrl, setImageUrl] = useState(null);
+  const [selectedModel, setSelectedModel] = useState("optimized"); // Default model
 
   const handleFileChange = ({ file }) => {
     const selectedFile = file.originFileObj || file;
@@ -51,19 +52,21 @@ const ImageUpload = () => {
     formData.append("file", file);
 
     try {
-      const response = await axios.post("https://tomatoes-classification-be.onrender.com/predict", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const response = await axios.post(
+        `https://tomatoes-classification-be.onrender.com/predict/${selectedModel}`, // Send selected model in the URL
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
 
       if (response.data) {
-        // Update with translated prediction
         setPrediction(translatePrediction(response.data.prediction));
         setConfidence(response.data.confidence);
       } else {
         setError("No prediction received from server.");
       }
     } catch (err) {
-      // Handle errors from the server
       if (err.response) {
         setError(`Error: ${err.response.data.error || "Unknown error occurred."}`);
       } else {
@@ -91,21 +94,28 @@ const ImageUpload = () => {
 
         {imageUrl && (
           <div className="image-preview">
-            <img
-              src={imageUrl}
-              alt="Preview"
-              className="image-display"
-            />
+            <img src={imageUrl} alt="Preview" className="image-display" />
           </div>
         )}
 
         {error && <p className="error-message">{error}</p>}
 
+        {/* Radio buttons for selecting the model */}
+        <div className="model-selector my-10">
+          <Radio.Group
+            onChange={(e) => setSelectedModel(e.target.value)}
+            value={selectedModel}
+          >
+            <Radio.Button value="optimized">Optimized Model</Radio.Button>
+            <Radio.Button value="vgg16">VGG16</Radio.Button>
+          </Radio.Group>
+        </div>
+
         <Button
           type="primary"
           onClick={handleUpload}
           disabled={loading}
-          className="predict-button"
+          className="predict-button pt-4"
         >
           {loading ? <Spin /> : "Upload and Predict"}
         </Button>
@@ -113,7 +123,9 @@ const ImageUpload = () => {
         {prediction && (
           <div className="result-container">
             <p className="result-text">Prediction: {prediction}</p>
-            <p className="confidence-text">Confidence: {confidence.toFixed(2)}</p>
+            <p className="confidence-text">
+              Confidence: {confidence.toFixed(2)}
+            </p>
           </div>
         )}
       </div>
