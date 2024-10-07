@@ -53,7 +53,7 @@ const ImageUpload = () => {
 
     try {
       const response = await axios.post(
-        `https://tomatoes-classification-be.onrender.com/predict/${selectedModel}`, // Send selected model in the URL
+        `http://127.0.0.1:5000/predict/${selectedModel}`, // Send selected model in the URL
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -78,7 +78,7 @@ const ImageUpload = () => {
   };
 
   return (
-    <div className="app-container">
+    <div className="app-container bg">
       <div className="upload-container">
         <h2 className="title">Upload an Image for Prediction</h2>
 
@@ -101,13 +101,14 @@ const ImageUpload = () => {
         {error && <p className="error-message">{error}</p>}
 
         {/* Radio buttons for selecting the model */}
-        <div className="model-selector my-10">
+        <div className="model-selector">
           <Radio.Group
             onChange={(e) => setSelectedModel(e.target.value)}
             value={selectedModel}
           >
             <Radio.Button value="optimized">Optimized Model</Radio.Button>
             <Radio.Button value="vgg16">VGG16</Radio.Button>
+            {/* <Radio.Button value="effi">EFFI</Radio.Button> */}
           </Radio.Group>
         </div>
 
@@ -115,7 +116,7 @@ const ImageUpload = () => {
           type="primary"
           onClick={handleUpload}
           disabled={loading}
-          className="predict-button pt-4"
+          className="predict-button"
         >
           {loading ? <Spin /> : "Upload and Predict"}
         </Button>

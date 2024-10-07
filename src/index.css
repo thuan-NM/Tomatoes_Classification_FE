@@ -112,6 +112,7 @@ button:focus-visible {
     width: 100%;
     background-color: #1890ff;
     color: white;
+    margin-top: 20px;
 }
 
 .result-container {
